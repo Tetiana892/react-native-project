@@ -12,12 +12,15 @@ import {
   ImageBackground,
   Alert,
 }from "react-native";
+import { useNavigation } from '@react-navigation/native';
 
 import Photo from '../assets/images/photo.png';
 import { AntDesign } from '@expo/vector-icons'; 
 
 
 export default function RegistrationScreen(){
+  const navigation = useNavigation();
+
     const [login, onChangeLogin] = useState("");
     const [email, onChangeEmail] = useState("");
     const [password, onChangePassword] = useState("");
@@ -36,6 +39,8 @@ export default function RegistrationScreen(){
       const onLogin =  () => {
         const emailRegex =/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const redex= emailRegex.test(email);
+        const credentials = `login: ${login} e-mail: ${email}, pass: ${password}`;
+
           if (!login || !email || !password) {
             Alert.alert("Поле не може бути пустим!");
             return;
@@ -45,7 +50,7 @@ export default function RegistrationScreen(){
             Alert.alert("Невірний формат електронної пошти!");
             return;
         } 
-        
+         console.log(credentials);
         clearForm();
       };
 
@@ -142,7 +147,7 @@ export default function RegistrationScreen(){
                 </TouchableOpacity>
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  onPress={() => Alert.alert("Work ask")}
+                  onPress={() => navigation.navigate("Login")}
                 >
                   <Text style={styles.linkTitle}>Вже є аккаунт? Увійти</Text>
                 </TouchableOpacity>

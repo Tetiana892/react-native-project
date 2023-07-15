@@ -12,11 +12,13 @@ import {
   ImageBackground,
   Alert,
 } from "react-native";
+import { useNavigation } from '@react-navigation/native';
 
 import Photo from '../assets/images/photo.png';
 
 export  default function LoginScreen() {
-
+  const navigation = useNavigation();
+  
   const [email, onChangeEmail] = useState("");
   const [password, onChangePassword] = useState("");
   const [showPassword, setShowPassword] = useState(true);
@@ -34,6 +36,8 @@ export  default function LoginScreen() {
   const onLogin = () => {
     const emailRegex =/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const redex= emailRegex.test(email);
+    const credentials = `e-mail: ${email}, pass: ${password}`;
+
       if ( !email || !password) {
         Alert.alert("Поле не може бути пустим!");
         return;
@@ -43,7 +47,7 @@ export  default function LoginScreen() {
         Alert.alert("Невірний формат електронної пошти!");
         return;
     } 
-    
+     console.log(credentials);
     clearForm();
   };
 
@@ -115,7 +119,7 @@ export  default function LoginScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => Alert.alert("Work ask")}
+                onPress={() => navigation.navigate("Login")}
               >
                 <Text style={styles.linkTitle}>
                   Не має акаунта? Зареєструватися
