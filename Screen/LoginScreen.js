@@ -12,12 +12,12 @@ import {
   ImageBackground,
   Alert,
 } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+// import { useNavigation } from '@react-navigation/native';
 
 import Photo from '../assets/images/photo.png';
 
-export  default function LoginScreen() {
-  const navigation = useNavigation();
+export  default function LoginScreen({navigation}) {
+  // const navigation = useNavigation();
   
   const [email, onChangeEmail] = useState("");
   const [password, onChangePassword] = useState("");

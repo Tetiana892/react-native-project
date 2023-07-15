@@ -12,14 +12,14 @@ import {
   ImageBackground,
   Alert,
 }from "react-native";
-import { useNavigation } from '@react-navigation/native';
+// import { useNavigation } from '@react-navigation/native';
 
 import Photo from '../assets/images/photo.png';
 import { AntDesign } from '@expo/vector-icons'; 
 
 
-export default function RegistrationScreen(){
-  const navigation = useNavigation();
+export default function RegistrationScreen({navigation}){
+  // const navigation = useNavigation();
 
     const [login, onChangeLogin] = useState("");
     const [email, onChangeEmail] = useState("");
