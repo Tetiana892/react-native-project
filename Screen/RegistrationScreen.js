@@ -51,6 +51,7 @@ export default function RegistrationScreen({navigation}){
             return;
         } 
          console.log(credentials);
+      navigation.navigate("Home");
         clearForm();
       };
 
