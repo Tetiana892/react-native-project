@@ -120,7 +120,7 @@ export  default function LoginScreen({navigation}) {
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => navigation.navigate("Login")}
+                onPress={() => navigation.navigate("Registration")}
               >
                 <Text style={styles.linkTitle}>
                   Не має акаунта? Зареєструватися

@@ -3,14 +3,14 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/stack';
 
 
-import RegistrationScreen from './Screen/RegistrationScreen';
-import LoginScreen from './Screen/LoginScreen';
-import Home from './Screen/Home';
+import RegistrationScreen from './Screens/RegistrationScreen';
+import LoginScreen from './Screens/LoginScreen';
+import Home from './Screens/Home';
 
-const MainStack = createStackNavigator(); // вказує на групу навігаторів
+const MainStack = createNativeStackNavigator(); // вказує на групу навігаторів
 
 export default function App() {
 
