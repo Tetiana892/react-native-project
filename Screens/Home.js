@@ -30,6 +30,30 @@ const headerLogout = () => {
   );
 };
 
+const headerToTop = () => {
+  const navigation = useNavigation();
+  return(
+    <TouchableOpacity
+      style={{left: 16}}
+      onPress={() => navigation.navigate('PostsScreen')}
+    >
+     <AntDesign name="arrowleft" size={24} color="black" />
+    </TouchableOpacity>
+  )
+};
+
+const headerTo = () => {
+  const navigation = useNavigation();
+  return(
+    <TouchableOpacity
+      style={{left: 16}}
+      onPress={() => navigation.navigate('CreatePostsScreen')}
+    >
+     <AntDesign name="arrowleft" size={24} color="black" />
+    </TouchableOpacity>
+  )
+};
+
 const PostsStackScreen = () => {
   return (
     <PostsStack.Navigator>
@@ -60,6 +84,7 @@ const CreatePostsStackScreen = () => {
           headerTitleAlign: "center",
           headerTitleStyle: styles.headerText,
           headerStyle: styles.headerStyle,
+          headerLeft:headerToTop,
           }}
       />
     </CreatePostsStack.Navigator>
@@ -73,10 +98,11 @@ const ProfileStackScreen = () => {
         name="ProfileScreen"
         component={ProfileScreen}
         options={{
-          title: "Коментарі",
+          title: "Профіль",
           headerTitleAlign: "center",
           headerTitleStyle: styles.headerText,
           headerStyle: styles.headerStyle,
+          headerLeft:headerTo,
         }}
       />
     </ProfileStack.Navigator>
@@ -84,9 +110,7 @@ const ProfileStackScreen = () => {
 };
 
 export default function Home() {
-  const [showNavigation, setShowNavigation] = useState(true);
 
-  if (showNavigation) {
     return (
       <Tabs.Navigator
         screenOptions={{
@@ -137,9 +161,7 @@ export default function Home() {
         />
       </Tabs.Navigator>
     );
-  } else {
-    return <CreatePostsScreen />;
-  }
+ 
 }
 
 const styles = StyleSheet.create({
