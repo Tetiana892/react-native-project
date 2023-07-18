@@ -12,19 +12,18 @@ import {
   ImageBackground,
   Alert,
 } from "react-native";
-// import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import Photo from '../assets/images/photo.png';
 
-export  default function LoginScreen({navigation}) {
-  // const navigation = useNavigation();
+export  default function LoginScreen() {
+  const navigation = useNavigation();
   
   const [email, onChangeEmail] = useState("");
   const [password, onChangePassword] = useState("");
   const [showPassword, setShowPassword] = useState(true);
   const [isFocusedEmail, setIsFocusedEmail] = useState(false);
   const [isFocusedPassword, setIsFocusedPassword] = useState(false);
-
 
   const behavior = Platform.OS === "ios" ? "padding" : "height";
   const keyboardVerticalOffset = Platform.OS === "ios" ? -140 : -70;
@@ -47,9 +46,10 @@ export  default function LoginScreen({navigation}) {
         Alert.alert("Невірний формат електронної пошти!");
         return;
     } 
+    Alert.alert(`${email}, успішно увійшли!`);
      console.log(credentials);
-     navigation.navigate("Home");
-    clearForm();
+     clearForm();
+     navigation.navigate("Home", { screen: "PostsScreen" });
   };
 
   const clearForm = () => {
