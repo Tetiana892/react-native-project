@@ -4,7 +4,6 @@ import {
   StyleSheet,
   TextInput,
   Text,
-  TouchableOpacity,
   Platform,
   KeyboardAvoidingView,
   Keyboard,
@@ -12,6 +11,7 @@ import {
   ImageBackground,
   Alert,
 } from "react-native";
+import {TouchableOpacity} from "react-native-gesture-handler";
 import { useNavigation } from '@react-navigation/native';
 
 import Photo from '../assets/images/photo.png';

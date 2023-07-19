@@ -1,104 +1,125 @@
-import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { Text, View,  StyleSheet,Image } from "react-native";
 import { Camera } from "expo-camera";
+import {TouchableOpacity} from "react-native-gesture-handler";
 import * as MediaLibrary from "expo-media-library";
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from '@expo/vector-icons'; 
 
-export default function Home() {
-  const [hasPermission, setHasPermission] = useState(null);
-  const [cameraRef, setCameraRef] = useState(null);
-  const [type, setType] = useState(Camera.Constants.Type.back);
+export default function CreatePostsScreen() {
+  const [photo, setPhoto] = useState(null);
+  const [camera, setCamera] = useState(null);
+  const navigation = useNavigation();
+  // const [type, setType] = useState(Camera.Constants.Type.back);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestPermissionsAsync();
-      await MediaLibrary.requestPermissionsAsync();
+ const takePhoto =  async () => {
+  const photo = await camera.takePictureAsync();
+  setPhoto(photo.uri);
+  console.log("photo", photo);
+ };
 
-      setHasPermission(status === "granted");
-    })();
-  }, []);
-
-  if (hasPermission === null) {
-    return <View />;
-  }
-  if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
-  }
+ const sendPhoto = () => {
+  navigation.navigate("PostsScreen", {photo});
+ };
 
   return (
     <View style={styles.container}>
       <Camera
         style={styles.camera}
-        type={type}
-        ref={setCameraRef}
+        ref={setCamera}
       >
-        <View style={styles.photoView}>
-          <TouchableOpacity
-            style={styles.flipContainer}
-            onPress={() => {
-              setType(
-                type === Camera.Constants.Type.back
-                  ? Camera.Constants.Type.front
-                  : Camera.Constants.Type.back
-              );
-            }}
-          >
-            <Text style={{ fontSize: 18, marginBottom: 10, color: "white" }}>
-              {" "}
-              Flip{" "}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={async () => {
-              if (cameraRef) {
-                const { uri } = await cameraRef.takePictureAsync();
-                await MediaLibrary.createAssetAsync(uri);
-              }
-            }}
-          >
-            <View style={styles.takePhotoOut}>
-              <View style={styles.takePhotoInner}></View>
-            </View>
-          </TouchableOpacity>
+      {photo &&  (
+          <View style= {styles.takePhotoContainer}>
+          <Image 
+          source={{uri: photo}}
+           style={styles.imageCamera}/>
         </View>
+        )}
+          <TouchableOpacity
+            style={styles.snapContainer}
+            onPress={takePhoto} 
+          >
+            <View style={{ alingItems: 'center',
+    justifyContent: 'center'}}>
+            <Ionicons name="ios-camera" size={24} color="#BDBDBD" />
+            </View>
+          </TouchableOpacity> 
       </Camera>
+      <View>
+      <TouchableOpacity
+            style={styles.sendBtn}
+            onPress={sendPhoto} 
+          >
+            <Text style={styles.sendLabel}>
+      Опубліковати
+            </Text>
+          </TouchableOpacity> 
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  camera: { flex: 1 },
-  photoView: {
+  container: { 
     flex: 1,
-    backgroundColor: "transparent",
-    justifyContent: "flex-end",
+    height: 240,
+    borderRadius: 8,
+    backgroundColor: "#E8E8E8",
+    marginBottom: 8,
+   },
+  camera: {
+    height: "70%",
+    resizeMode: "contain",
+    marginHorizontal:10,
+    borderRadius: 10,
+    marginTop: 30,
+    alingItems: 'center',
+    justifyContent: 'flex-end',
+   },
+
+  snapContainer: {
+  borderWidth:1,
+  width: 70,
+  height: 70,
+  borderRadius: 50,
+  justifyContent: 'center',
+  alingItems:'center',
+  marginBottom: 20,
+  backgroundColor: "#fff",
   },
 
-  flipContainer: {
-    flex: 0.1,
-    alignSelf: "flex-end",
-  },
+takePhotoContainer:{
+  position: "absolute",
+  top: 0,
+  left: 90,
+  height: "100%",
+  borderWidth: 1,
+  borderRadius: 10,
+  justifyContent: 'center',
+  alingItems:'center',
+  borderColor: "#fff",
+},
 
-  button: { alignSelf: "center" },
-
-  takePhotoOut: {
-    borderWidth: 2,
-    borderColor: "white",
-    height: 50,
-    width: 50,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 50,
-  },
-
-  takePhotoInner: {
-    borderWidth: 2,
-    borderColor: "white",
-    height: 40,
-    width: 40,
-    backgroundColor: "white",
-    borderRadius: 50,
-  },
+sendBtn:{
+  marginHorizontal:30,
+  backgroundColor: "#FF6C00",
+      borderRadius: 100,
+      height: 50,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 50,
+},
+sendLabel:{
+  color: "#fff",
+  font: "Roboto_400Regular",
+},
+imageCamera:{
+  // position: "absolute",
+  borderRadius:10,
+  alignItems: "center",
+  justifyContent: "center",
+  width: 200,
+  height:300,
+}
+ 
 });

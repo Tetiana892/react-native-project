@@ -1,6 +1,6 @@
 import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { useState } from "react";
+import { StyleSheet, View } from "react-native";
+import {TouchableOpacity} from "react-native-gesture-handler";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useNavigation } from "@react-navigation/native";
