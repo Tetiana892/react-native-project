@@ -10,8 +10,9 @@ import {
   TouchableWithoutFeedback,
   ImageBackground,
   Alert,
+  TouchableOpacity,
 } from "react-native";
-import {TouchableOpacity} from "react-native-gesture-handler";
+
 import { useNavigation } from '@react-navigation/native';
 
 import Photo from '../assets/images/photo.png';

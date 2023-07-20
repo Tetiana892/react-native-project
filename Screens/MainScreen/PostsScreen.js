@@ -2,6 +2,7 @@ import React, {useState, useEffect}from "react";
 import { View,  StyleSheet, FlatList, Image } from "react-native";
 
 export default function PostsScreen({route} ){
+    
     const [posts, setPosts] = useState([]);
      console.log("route.params", route.params);
 
