@@ -46,7 +46,7 @@ import {
               <View style={styles.userCardInformation}>
                 <TouchableOpacity
                   style={styles.wrap}
-                  onPress={() => navigation.navigate('Коментарі', {photo: item.photo})}
+                  onPress={() => navigation.navigate('CommentsScreen', {photo: item.photo})}
                 >
                   <Feather name="message-circle" size={24} color="#FF6C00" />
                   <Text style={styles.textStatistic}>{item.comment}</Text>

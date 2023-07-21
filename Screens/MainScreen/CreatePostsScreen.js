@@ -11,7 +11,7 @@ import {
 
 import { Camera } from "expo-camera";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons, Feather } from '@expo/vector-icons'; 
+import { Ionicons, Feather,FontAwesome } from '@expo/vector-icons'; 
 import * as Location from "expo-location";
 
 export default function CreatePostsScreen() {
@@ -98,7 +98,7 @@ const removeFields = () => {
           style={styles.input}
           value={comment}
           onChangeText={(value) => setComment(value)}
-        ></TextInput>
+        />
 
         <TextInput
           placeholderTextColor={"#BDBDBD"}
@@ -106,7 +106,7 @@ const removeFields = () => {
           style={styles.inputLocation}
           value={locationName}
           onChangeText={(value) => setLocationName(value)}
-        ></TextInput>
+        />
         <TouchableOpacity
           style={styles.locationBtn}
           onPress={() =>
