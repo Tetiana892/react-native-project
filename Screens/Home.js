@@ -35,24 +35,13 @@ const headerToTop = () => {
   return(
     <TouchableOpacity
       style={{left: 16}}
-      onPress={() => navigation.navigate('PostsScreen')}
+      onPress={() => navigation.goBack()}
     >
      <AntDesign name="arrowleft" size={24} color="black" />
     </TouchableOpacity>
   )
 };
 
-const headerTo = () => {
-  const navigation = useNavigation();
-  return(
-    <TouchableOpacity
-      style={{left: 16}}
-      onPress={() => navigation.navigate('CreatePostsScreen')}
-    >
-     <AntDesign name="arrowleft" size={24} color="black" />
-    </TouchableOpacity>
-  )
-};
 
 const PostsStackScreen = () => {
   return (
@@ -102,7 +91,7 @@ const ProfileStackScreen = () => {
           headerTitleAlign: "center",
           headerTitleStyle: styles.headerText,
           headerStyle: styles.headerStyle,
-          headerLeft:headerTo,
+          headerLeft:headerToTop,
         }}
       />
     </ProfileStack.Navigator>
