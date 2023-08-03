@@ -196,8 +196,8 @@ export default function RegistrationScreen(){
                   </TouchableOpacity>
                 </View>
                 <TouchableOpacity
-                  // onPress={onLogin}
-                  onPress={onRegistration}
+                  onPress={onLogin}
+                  // onPress={onRegistration}
                   activeOpacity={0.8}
                   style={styles.btn}
                 >
