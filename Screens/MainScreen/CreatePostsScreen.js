@@ -1,280 +1,450 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect , useRef} from "react";
 import { 
-  Text, 
-  View, 
-   StyleSheet,
-   Image,
-   TouchableOpacity ,
-    TextInput ,
-   
+  StyleSheet,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Image,
+  Keyboard,
+  Dimensions,
   } from "react-native";
 
 import { Camera } from "expo-camera";
-import { useNavigation } from "@react-navigation/native";
-import { Ionicons, Feather,FontAwesome } from '@expo/vector-icons'; 
+import { useNavigation , CommonActions } from "@react-navigation/native";
+import { AntDesign, FontAwesome, Feather} from '@expo/vector-icons'; 
+import * as MediaLibrary from "expo-media-library";
+import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 
-export default function CreatePostsScreen() {
-  const navigation = useNavigation();
+const { width, height } = Dimensions.get("window");
+const CAMERA_SIZE = 240;
 
-  const [cameraRef, setCameraRef] = useState(null);
-  const [photo, setPhoto] = useState("");
-  const [comment, setComment] = useState("");
-  const [location, setLocation] = useState(null);
-  const [locationName, setLocationName] = useState("");
+export default function CreatePostsScreen() {
+  const [text, setText] = useState("");
+  const [photoUri, setPhotoUri] = useState(null);
+  const [locationText, setLocationText] = useState("");
+  const [hasPermission, setHasPermission] = useState(null);
+  const [cameraType, setCameraType] = useState(Camera.Constants.Type.back);
+  const [isTakingPhoto, setIsTakingPhoto] = useState(false);
+  const [isPhotoSelected, setIsPhotoSelected] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [notification, setNotification] = useState(null);
+  const [textError, setTextError] = useState(false);
+  const [locationError, setLocationError] = useState(false);
+  // const [manualLocation, setManualLocation] = useState("");
+
+  const navigation = useNavigation();
+  const cameraRef = useRef(null);
 
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Permission to access location was denied");
-      }
-      let location = await Location.getCurrentPositionAsync({});
-      const coords = {
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      };
-      setLocation(coords);
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      await MediaLibrary.requestPermissionsAsync();
+      setHasPermission(status === "granted");
     })();
-    navigation.setOptions({ tabBarStyle: { display: "none" } });
   }, []);
 
- const takePhoto =  async () => {
-  try{
-  const photo = await cameraRef.takePictureAsync();
-  setPhoto(photo.uri);
-  let location = await Location.getCurrentPositionAsync({});
-      const coords = {
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission to access location was denied");
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      let geocode = await Location.reverseGeocodeAsync({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
- };
- setLocation(coords);
-}catch(error){
-console.log(error);
-}
- };
+      });
 
-const removeFields = () => {
-  setComment("");
-  setPhoto("");
-  setLocationName("");
-};
+      // Извлечение города и области (если доступно) из ответа геокодирования
+      let city = geocode[0].city;
+      let region = geocode[0].region;
 
- const sendPhoto = () => {
-  removeFields();
-  navigation.navigate("PostsScreen", {photo,comment,
-    location});
- };
+      // Объединение города и области в текст локации
+      let address = city;
+      if (region) {
+        address += `, ${region}`;
+      }
 
- const deletePhoto = () => {
-  removeFields();
-};
+      setLocationText(address);
+    })();
+  }, []);
+
+  // const takePhoto = async ()=> {
+  //   if(cameraRef.current){
+  //     const photo = await cameraRef.current.takePictureAsync();
+  //     await MediaLibrary.createAssetAsync(photo.uri);
+  //     setPhotoUri(photo.uri);
+  //     setIsTakingPhoto(false);
+  //     setIsPhotoSelected(true);
+  //   }
+  // };
+
+  const uploadPhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setPhotoUri(result.assets[0].uri);
+      setIsTakingPhoto(false);
+      setIsPhotoSelected(true);
+    }
+  };
+
+  const retakePhoto = () => {
+    setPhotoUri(null);
+    setIsTakingPhoto(true);
+    setIsPhotoSelected(false);
+  };
+
+  const handleCameraButtonPress = async () => {
+    if (isPhotoSelected) {
+      setIsPhotoSelected(false);
+      setIsTakingPhoto(true);
+    } else {
+      if (cameraRef.current) {
+        try {
+          const photo = await cameraRef.current.takePictureAsync();
+          await MediaLibrary.createAssetAsync(photo.uri);
+          setPhotoUri(photo.uri);
+          setIsTakingPhoto(false);
+          setIsPhotoSelected(true);
+        } catch (error) {
+          console.error("Помилка під час зйомки фотографії:", error);
+        }
+      }
+    }
+  };
+  const handleDeleteAllFields = () => {
+    setText("");
+    setPhotoUri(null);
+    setLocationText("");
+    setIsPhotoSelected(false);
+    setIsTakingPhoto(false);
+  };
+  const handleLocationIconPress = async () => {
+    if (!locationText) {
+      // Запросите разрешение на доступ к местоположению
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Доступ до місцязнаходження відхилений");
+        return;
+      }
+
+      // Получите текущее местоположение и обновите состояние locationText
+      try {
+        let location = await Location.getCurrentPositionAsync({});
+        let geocode = await Location.reverseGeocodeAsync({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+
+        let city = geocode[0].city;
+        let region = geocode[0].region;
+        let address = city;
+        if (region) {
+          address += `, ${region}`;
+        }
+
+        setLocationText(address);
+      } catch (error) {
+        console.error("Помилка при отриманні місцязнаходження:", error);
+      }
+    }
+  };
+  const handlePublishButtonPress = () => {
+    if (!text) {
+      setTextError(true);
+    } else {
+      setTextError(false);
+    }
+
+    if (!locationText) {
+      setLocationError(true);
+    } else {
+      setLocationError(false);
+    }
+
+    if (photoUri && text && locationText) {
+      const newPost = {
+        photoUri,
+        text,
+        locationText,
+      };
+
+      setPosts([...posts, newPost]);
+
+      setText("");
+      setPhotoUri(null);
+      setLocationText("");
+      setIsPhotoSelected(false);
+      setIsTakingPhoto(false);
+
+      navigation.navigate("PostsScreen", { posts: [...posts, newPost] });
+    } else {
+      setNotification("Заповніть всі поля перед публікацією.");
+    }
+  };
 
   return (
-    <>
-    <View style={styles.container}>
-      <Camera style={styles.camera} ref={setCameraRef}>
-        {photo && (
-          <View style={styles.previewPhotoContainer}>
-            <Image
-              source={{ uri: photo }}
-              style={{ height: 100, width: 100 }}
-            />
+     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+     <View style={styles.container}>
+        <View style={styles.photoBlock}>
+          {!isPhotoSelected ? (
+            <View style={styles.cameraBlock}>
+              <Camera
+                style={styles.camera}
+                type={cameraType}
+                ref={cameraRef}
+              ></Camera>
+              <View style={styles.photoView}>
+                <TouchableOpacity
+                  style={styles.buttonCam}
+                  onPress={handleCameraButtonPress}
+                >
+                  <FontAwesome name="camera" size={24} color="#BDBDBD" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.photoContainer}>
+              <Image source={{ uri: photoUri }} style={styles.photo} />
+              <TouchableOpacity
+                style={styles.retakeButton}
+                onPress={retakePhoto}
+              >
+                <FontAwesome name="camera" size={24} color="#BDBDBD" />
+              </TouchableOpacity>
+            </View>
+          )}
+          {isPhotoSelected ? (
+            <TouchableOpacity style={styles.btnLoad} onPress={uploadPhoto}>
+              <Text style={styles.textLoad}>Редагувати фото</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.btnLoad} onPress={uploadPhoto}>
+              <Text style={styles.textLoad}>Завантажте фото</Text>
+            </TouchableOpacity>
+          )}
+          <View style={styles.namePhotoBlock}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS == "ios" ? "padding" : "height"}
+              style={styles.keyboardInp}
+            >
+              <TextInput
+                style={styles.namePhoto}
+                value={text}
+                placeholder="Назва..."
+                onChangeText={setText}
+              />
+              {textError && (
+                <Text style={styles.errorText}>Поле має бути заповнено</Text>
+              )}
+            </KeyboardAvoidingView>
           </View>
-        )}
-        <TouchableOpacity style={styles.icon} onPress={takePhoto}>
-          <FontAwesome name="camera" size={20} color="#BDBDBD" />
-        </TouchableOpacity>
-      </Camera>
-      {photo ? (
-        <Text style={styles.text}>Редагувати фото</Text>
-      ) : (
-        <Text style={styles.text}>Завантажте фото</Text>
-      )}
-      <View>
-        <TextInput
-          placeholderTextColor={"#BDBDBD"}
-          placeholder="Назва..."
-          style={styles.input}
-          value={comment}
-          onChangeText={(value) => setComment(value)}
-        />
-
-        <TextInput
-          placeholderTextColor={"#BDBDBD"}
-          placeholder="Місцевість..."
-          style={styles.inputLocation}
-          value={locationName}
-          onChangeText={(value) => setLocationName(value)}
-        />
-        <TouchableOpacity
-          style={styles.locationBtn}
-          onPress={() =>
-            navigation.navigate("MapScreen", {
-              location: location.coords,
-            })
-          }
-        >
-          <Ionicons name="location-outline" size={24} color="#BDBDBD" />
-        </TouchableOpacity>
+          <View style={styles.nameLocBlock}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS == "ios" ? "padding" : "height"}
+              style={styles.keyboardInp}
+            >
+              <TextInput
+                style={styles.nameLoc}
+                value={locationText}
+                placeholder="Локація..."
+                onChangeText={setLocationText}
+              />
+              {locationError && (
+                <Text style={styles.errorText}>Поле має бути заповнено</Text>
+              )}
+              <TouchableOpacity
+                style={styles.iconLocBtn}
+                onPress={handleLocationIconPress}
+              >
+                <Feather
+                  name="map-pin"
+                  size={24}
+                  color="#BDBDBD"
+                  style={styles.iconLoc}
+                />
+              </TouchableOpacity>
+            </KeyboardAvoidingView>
+          </View>
+         
+             <TouchableOpacity
+             style={styles.loadBtn}
+             onPress={handlePublishButtonPress}
+           >
+             <Text style={styles.loadText}>Опубліковати</Text>
+           </TouchableOpacity>
+     
+            <View style={styles.delBlock}>
+            <TouchableOpacity
+              style={styles.delBtn}
+              onPress={handleDeleteAllFields}
+            >
+              <Feather
+                name="trash-2"
+                size={24}
+                color="#BDBDBD"
+                style={styles.delIcon}
+              />
+            </TouchableOpacity>
+          </View>
+    
+        
+        </View>
       </View>
-      <View style={styles.tabBarWrapper}></View>
-      {photo ? (
-        <TouchableOpacity
-          style={styles.buttonActive}
-          activeOpacity={0.8}
-          onPress={sendPhoto}
-        >
-          <Text style={styles.buttonTextActive}>Опубліковати</Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          style={styles.button}
-          activeOpacity={0.8}
-          onPress={sendPhoto}
-        >
-          <Text style={styles.buttonText}>Опубліковати</Text>
-        </TouchableOpacity>
-      )}
-
-      <TouchableOpacity
-        style={styles.deleteBtn}
-        activeOpacity={0.8}
-        onPress={deletePhoto}
-      >
-        <Feather name="trash-2" size={24} color="#BDBDBD" />
-      </TouchableOpacity>
-    </View>
-  </>
+    </TouchableWithoutFeedback>
 );
 };
 
 const styles = StyleSheet.create({
-container: {
-  flex: 1,
-  backgroundColor: "#FFFFFF",
-  paddingHorizontal: 16,
-},
-goBackBtn: {
-  position: "absolute",
-  left: 15,
-  top: -15,
-  zIndex: 9,
-},
-camera: {
-  height: 240,
-  borderRadius: 8,
-  marginTop: 32,
-  alignItems: "center",
-  justifyContent: "center",
-},
-headerWrapper: {
-  justifyContent: "flex-end",
-  alignItems: "center",
-  height: 88,
-  borderBottomWidth: 1,
-  borderBottomColor: "#BDBDBD",
-},
-headerText: {
-  marginBottom: 11,
-  fontSize: 17,
-},
-fotoBox: {
-  backgroundColor: "#F6F6F6",
-  width: 343,
-  height: 240,
-  marginTop: 32,
-  alignItems: "center",
-  justifyContent: "center",
-},
-icon: {
-  width: 60,
-  height: 60,
-  backgroundColor: "rgba(255, 255, 255, 0.3)",
-  alignItems: "center",
-  justifyContent: "center",
-  borderRadius: 50,
-  zIndex: 1,
-},
-previewPhotoContainer: {
-  position: "absolute",
-  marginTop: 32,
-  marginHorizontal: 16,
-},
-previewPhoto: {
-  height: 240,
-  width: "100%",
-  borderRadius: 8,
-},
-text: {
-  marginTop: 8,
-  fontSize: 16,
-  lineHeight: 19,
-  color: "#BDBDBD",
-  marginBottom: 32,
-},
-input: {
-  borderBottomWidth: 1,
-  fontSize: 16,
-  borderBottomColor: "#E8E8E8",
-  paddingTop: 15,
-  paddingBottom: 16,
-
-  fontSize: 16,
-  lineHeight: 19,
-  color: "#212121",
-},
-inputLocation: {
-  marginTop: 16,
-  borderBottomWidth: 1,
-  fontSize: 16,
-  lineHeight: 19,
-  color: "#212121",
-  borderBottomColor: "#E8E8E8",
-  paddingTop: 15,
-  paddingBottom: 16,
-  paddingLeft: 26,
-},
-locationBtn: {
-  position: "absolute",
-  top: "65%",
-  width: 25,
-  height: 25,
-},
-button: {
-  marginTop: 32,
-  backgroundColor: "#F6F6F6",
-  fontSize: 16,
-  lineHeight: 19,
-  color: "#FFFFFF",
-  height: 61,
-  borderRadius: 100,
-  justifyContent: "center",
-  alignItems: "center",
-},
-buttonActive: {
-  marginTop: 32,
-  backgroundColor: "#FF6C00",
-  height: 61,
-  borderRadius: 100,
-  justifyContent: "center",
-  alignItems: "center",
-},
-buttonText: {
-  color: "#BDBDBD",
-},
-buttonTextActive: {
-  color: "#fff",
-},
-deleteBtn: {
-  marginTop: 120,
-  justifyContent: "center",
-  alignItems: "center",
-  marginLeft: "auto",
-  marginRight: "auto",
-  width: 70,
-  height: 40,
-  borderRadius: 100,
-  backgroundColor: "#F6F6F6",
-},
+  container: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  headerBlock: {
+    paddingTop: 55,
+    paddingBottom: 11,
+    alignItems: "center",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#b3b3b3",
+  },
+  backBlock: {
+    position: "absolute",
+    top: 54,
+    left: 16,
+  },
+  headerText: {
+    fontFamily: "Roboto_500Medium",
+    fontSize: 17,
+    lineHeight: 22,
+    color: "#212121",
+  },
+  photoBlock: {
+    flex: 1,
+    paddingTop: 32,
+    paddingRight: 16,
+    paddingLeft: 16,
+  },
+  cameraBlock: {
+    height: CAMERA_SIZE,
+    marginBottom: 8,
+    overflow: "hidden",
+  },
+  camera: {
+    flex: 1,
+  },
+  photoContainer: {
+    height: CAMERA_SIZE,
+    marginBottom: 8,
+  },
+  photo: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  photoView: {
+    position: "absolute",
+    top: 95,
+    left: 150,
+    borderRadius: 9999,
+    backgroundColor: "rgba(255, 255, 255, 0.30)",
+  },
+  buttonCam: {
+    width: 60,
+    height: 60,
+    borderRadius: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "#BDBDBD",
+  },
+  btnLoad: {
+    width: 121,
+    marginBottom: 32,
+    alignItems: "center",
+  },
+  textLoad: {
+    fontFamily: "Roboto_400Regular",
+    fontSize: 16,
+    color: "#BDBDBD",
+  },
+  namePhotoBlock: {
+    marginBottom: 16,
+  },
+  namePhoto: {
+    paddingTop: 16,
+    paddingBottom: 15,
+    borderBottomWidth: 0.5,
+    borderColor: "#E8E8E8",
+  },
+  nameLocBlock: {
+    marginBottom: 32,
+  },
+  nameLoc: {
+    paddingTop: 16,
+    paddingBottom: 15,
+    paddingLeft: 28,
+    borderBottomWidth: 0.5,
+    borderColor: "#E8E8E8",
+    fontFamily: "Roboto_400Regular",
+    fontSize: 16,
+  },
+  iconLocBtn: {
+    position: "absolute",
+    top: 18,
+    width: 28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  errorText: {
+    fontFamily: "Roboto_400Regular",
+    fontSize: 16,
+    color: "red",
+  },
+  loadBtn: {
+    paddingTop: 16,
+    paddingBottom: 16,
+    borderRadius: 100,
+    marginBottom: 120,
+    backgroundColor: "#FF6C00",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadText: {
+    fontFamily: "Roboto_400Regular",
+    fontSize: 16,
+    color: "#ffffff",
+  },
+  delBlock: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  delBtn: {
+    width: 360,
+    height: 55,
+    borderRadius: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F6F6F6",
+  },
+  retakeButton: {
+    position: "absolute",
+    top: 95,
+    left: 170,
+    width: 60,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.30)",
+    borderRadius: 9999,
+  },
 });

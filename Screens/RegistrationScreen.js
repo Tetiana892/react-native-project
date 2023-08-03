@@ -29,6 +29,7 @@ export default function RegistrationScreen(){
     const [isFocusedEmail, setIsFocusedEmail] = useState(false);
     const [isFocusedPassword, setIsFocusedPassword] = useState(false);
     const [isFocusedLogin, setIsFocusedLogin] = useState(false);
+    const [avatar, setAvatar] = useState(null);
     
     const behavior = Platform.OS === "ios" ? "padding" : "height";
     const keyboardVerticalOffset = Platform.OS === "ios" ? -140 : -160;
@@ -61,7 +62,54 @@ export default function RegistrationScreen(){
         onChangeEmail("");
         onChangePassword("");
       };
+      const handleAvatarSelect = async () => {
+        try {
+          const permissionResult =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (!permissionResult.granted) {
+            alert("Необходимо предоставить разрешение для доступа к галерее.");
+            return;
+          }
     
+          if (avatar) {
+            setAvatar(null);
+          } else {
+            const pickerResult = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 1,
+            });
+    
+            if (!pickerResult.canceled) {
+              setAvatar(pickerResult.assets[0].uri);
+            }
+          }
+        } catch (error) {
+          console.log("Ошибка выбора изображения:", error);
+        }
+      };
+    
+      const onRegistration = () => {
+        if (validateForm()) {
+          // Предположим, у вас есть функция для отправки данных на сервер или сохранения в базу данных.
+          // Здесь вы можете вызвать вашу функцию для регистрации пользователя и передать данные:
+          const registrationData = {
+            login,
+            email,
+            avatar,
+          };
+    
+          // Примените вашу логику отправки данных на сервер для регистрации пользователя
+          // В данном примере, просто симулируем успешную регистрацию через setTimeout
+          setTimeout(() => {
+            navigation.navigate("Home", { avatar, login, mail });
+          }, 1000); // Здесь вы можете использовать реальный запрос на сервер, а не setTimeout
+        } else {
+          Alert.alert("Форма не прошла валидацию. Пожалуйста, исправьте ошибки.");
+          setShowPassword("");
+        }
+      };
     return (
         <ImageBackground style={styles.imageBg} source={Photo}>
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -73,11 +121,18 @@ export default function RegistrationScreen(){
               <View style={styles.form}>
                 <View style={styles.photoWrap}>
                   <TouchableOpacity
-                    style={{ position: "absolute", bottom: 14, right: -14 }}
+                   onPress={handleAvatarSelect}
+                    
                   >
-                    <View>
+                     {avatar ? (<View style={styles.avaDell}>
                     <AntDesign name="pluscircleo" size={25} color="#FF6C00"/>
+                    </View>):(
+                      <View style={styles.avaAdd}>
+                      <AntDesign name="pluscircleo" size={24} color="#FF6C00" />
                     </View>
+                    )
+                    }
+                    
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.formTitle}>Реєстрація</Text>
@@ -141,7 +196,8 @@ export default function RegistrationScreen(){
                   </TouchableOpacity>
                 </View>
                 <TouchableOpacity
-                  onPress={onLogin}
+                  // onPress={onLogin}
+                  onPress={onRegistration}
                   activeOpacity={0.8}
                   style={styles.btn}
                 >
@@ -234,5 +290,24 @@ export default function RegistrationScreen(){
       top: "-19%",
       left: "37%",
       borderRadius: 16,
+    },
+    avaAdd: {
+      position: "absolute",
+      top: 80,
+      left: 100,
+      width: 30,
+      height: 30,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avaDell: {
+      position: "absolute",
+      left: 45,
+      bottom: 33,
+      width: 30,
+      height: 30,
+      alignItems: "center",
+      justifyContent: "center",
+      transform: [{ rotate: "-45deg" }],
     },
     });
