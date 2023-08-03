@@ -67,7 +67,7 @@ export default function RegistrationScreen(){
           const permissionResult =
             await ImagePicker.requestMediaLibraryPermissionsAsync();
           if (!permissionResult.granted) {
-            alert("Необходимо предоставить разрешение для доступа к галерее.");
+            alert("Надайте дозвіл доступу до галереї.");
             return;
           }
     
@@ -86,7 +86,7 @@ export default function RegistrationScreen(){
             }
           }
         } catch (error) {
-          console.log("Ошибка выбора изображения:", error);
+          console.log("Помилка вибору зображення:", error);
         }
       };
     
@@ -106,7 +106,7 @@ export default function RegistrationScreen(){
             navigation.navigate("Home", { avatar, login, mail });
           }, 1000); // Здесь вы можете использовать реальный запрос на сервер, а не setTimeout
         } else {
-          Alert.alert("Форма не прошла валидацию. Пожалуйста, исправьте ошибки.");
+          Alert.alert("Форма не пройшла валідацію. Виправте помилки.");
           setShowPassword("");
         }
       };
