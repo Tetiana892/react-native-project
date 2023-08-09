@@ -1,9 +1,12 @@
 import 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
+import { Provider } from 'react-redux';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+
+import{store} from './redux/store';
 
 import RegistrationScreen from './Screens/RegistrationScreen';
 import LoginScreen from './Screens/LoginScreen';
@@ -24,6 +27,7 @@ export default function App() {
     return null;
   }
   return (
+    <Provider store={store}>
     <NavigationContainer>
       <MainStack.Navigator >
        <MainStack.Screen name="Registration" component={RegistrationScreen}  options={{ headerShown: false }}/>
@@ -42,6 +46,7 @@ export default function App() {
          </MainStack.Navigator>  
       <StatusBar style="auto" />
     </NavigationContainer>
+    </Provider>
   );
 }
 
