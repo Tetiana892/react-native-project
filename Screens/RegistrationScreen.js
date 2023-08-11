@@ -13,6 +13,15 @@ import {
   TouchableOpacity,
 }from "react-native";
 
+import {useDispatch} from "react-redux";
+import { authSingUpUser} from './../redux/auth/authOperations';
+import {authSignUpUser} from './firebase/config'
+const initialState= {
+  email: "",
+  password: "",
+  login:"",
+}
+
 import { useNavigation } from '@react-navigation/native';
 
 import Photo from '../assets/images/photo.png';
@@ -21,6 +30,9 @@ import { AntDesign } from '@expo/vector-icons';
 
 export default function RegistrationScreen(){
   const navigation = useNavigation();
+
+  const dispatch= useDispatch();
+  const [state, setState] = useState(initialState);
 
     const [login, onChangeLogin] = useState("");
     const [email, onChangeEmail] = useState("");
@@ -53,6 +65,8 @@ export default function RegistrationScreen(){
             return;
         } 
          console.log(credentials);
+         dispatch(authSignUpUser(state));
+         setState(initialState);
          clearForm();
          navigation.navigate("Home", { screen: "PostsScreen" });
       };
@@ -62,6 +76,7 @@ export default function RegistrationScreen(){
         onChangeEmail("");
         onChangePassword("");
       };
+      
       const handleAvatarSelect = async () => {
         try {
           const permissionResult =
@@ -99,7 +114,7 @@ export default function RegistrationScreen(){
             email,
             avatar,
           };
-    
+    dispatch(authSingUpUser(state))
           // Примените вашу логику отправки данных на сервер для регистрации пользователя
           // В данном примере, просто симулируем успешную регистрацию через setTimeout
           setTimeout(() => {
@@ -110,6 +125,7 @@ export default function RegistrationScreen(){
           setShowPassword("");
         }
       };
+
     return (
         <ImageBackground style={styles.imageBg} source={Photo}>
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
